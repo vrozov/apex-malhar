@@ -61,7 +61,7 @@ public class FlumeSinkTest
       public synchronized void advertise(Service<byte[]> service)
       {
         port = service.getPort();
-        logger.debug("listening at {}", service);
+        logger.warn("listening at {}", service);
         notify();
       }
 
@@ -70,6 +70,7 @@ public class FlumeSinkTest
       public synchronized Collection<Service<byte[]>> discover()
       {
         try {
+          logger.warn("waiting for discover");
           wait();
         } catch (InterruptedException ie) {
           throw new RuntimeException(ie);
@@ -95,7 +96,7 @@ public class FlumeSinkTest
       public void onMessage(byte[] buffer, int offset, int size)
       {
         Slice received = new Slice(buffer, offset, size);
-        logger.debug("Client Received = {}", received);
+        logger.warn("Client Received = {}", received);
         Assert.assertEquals(received,
             new Slice(Arrays.copyOfRange(array, this.offset, array.length), 0, Server.Request.FIXED_SIZE));
         synchronized (FlumeSinkTest.this) {
@@ -106,6 +107,7 @@ public class FlumeSinkTest
       @Override
       public void connected()
       {
+        logger.warn("Connected");
         super.connected();
         array = new byte[Server.Request.FIXED_SIZE + offset];
         array[offset] = Server.Command.ECHO.getOrdinal();
@@ -130,6 +132,7 @@ public class FlumeSinkTest
       eventloop.connect(new InetSocketAddress(hostname, port), client);
       try {
         synchronized (this) {
+          logger.warn("waiting for connection");
           this.wait();
         }
       } finally {
